@@ -9,14 +9,14 @@ from torch_geometric.data import DataLoader
 import argparse
 from tqdm import tqdm
 # 
-import sys
-sys.path.append('..')
-from spdatasets.mnist import MNISTSuperPixelDataset
+from spdataset.mnist import MNISTSuperPixelDataset
+from train.jit_drn_model import DynamicReductionNetworkJit
+from train.drn_train import test
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=128)
 parser.add_argument('--dataset_name', type=str, default='mnist')
-args = parser.parse_args('')
+args = parser.parse_args()
 
 dataset_name = args.dataset_name
 
@@ -49,8 +49,6 @@ print('classes =', test_dataset.num_classes)
 hidden_dim = 20
 print('hidden_dim =', hidden_dim)
 
-from jit_drn_model import DynamicReductionNetworkJit
-
 input_dim = test_dataset.num_features
 hidden_dim = 20
 output_dim = test_dataset.num_classes
@@ -71,10 +69,8 @@ class Net(nn.Module):
 model = Net()
 
 device = torch.device('cpu')
-ckpt = torch.load('../checkpoints/mnist_e400_test9699.pt', map_location=device)
+ckpt = torch.load('checkpoints/mnist_e400_test9699.pt', map_location=device)
 model.load_state_dict(ckpt)
-
-from drn_train import test
 
 test_acc, test_loss = test(model, test_loader, device)
 
