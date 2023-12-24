@@ -16,6 +16,7 @@ def train(
     model.train()
     scheduler.step()
     total_loss = 0.0
+    total = 0
     correct = 0
     
     for data in tqdm(train_loader, total=len(train_loader)):
@@ -29,11 +30,13 @@ def train(
         # calculate
         total_loss += loss.item()
         pred = result.argmax(1)
+        total += len(data.y)
         correct += pred.eq(data.y).sum().item()
 
         optimizer.step()
         scheduler.batch_step()
-    return correct / len(train_dataset), total_loss / len(train_loader)
+        break
+    return correct / total, total_loss / len(train_loader)
 
 @torch.no_grad()
 def test(
@@ -55,6 +58,6 @@ def test(
         # calculate
         total_loss += loss.item()
         pred = result.argmax(1)
-        correct += pred.eq(data.y).sum().item()
         total += len(data.y)
+        correct += pred.eq(data.y).sum().item()
     return correct / total, total_loss / len(test_loader)

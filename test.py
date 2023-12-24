@@ -56,12 +56,14 @@ output_dim = test_dataset.num_classes
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.drn = DynamicReductionNetworkJit(input_dim=input_dim, hidden_dim=hidden_dim,
-                                           output_dim=output_dim,
-                                           k=4, aggr='add',
-                                           agg_layers=2, mp_layers=2, in_layers=3, out_layers=3,
-                                           graph_features=3,
-                                           )
+        self.drn = DynamicReductionNetworkJit(
+            input_dim=input_dim, hidden_dim=hidden_dim,
+            output_dim=output_dim,
+            k=4, aggr='add',
+            agg_layers=2, mp_layers=2, in_layers=3, out_layers=3,
+            graph_features=3,
+        )
+
     def forward(self, data):
         logits = self.drn(data.x, data.batch, None) # TO CHECK
         return F.log_softmax(logits, dim=1)
