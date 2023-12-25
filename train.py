@@ -6,6 +6,7 @@ from torch_geometric.data import DataLoader
 
 import os
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1,2,3'
+import mlflow
 # 
 from spdataset.mnist import MNISTSuperPixelDataset
 from train.jit_drn_model import DynamicReductionNetworkJit
@@ -18,10 +19,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=128)
 parser.add_argument('--dataset_name', type=str, default='mnist')
 args = parser.parse_args()
+param = vars(args)
 
 dataset_name = args.dataset_name
 batch_size = args.batch_size
 num_superpixel = '75'
+
+param.update({
+    'num_superpixel': int(num_superpixel),
+})
 
 ckpt_path = f'ckpt_{dataset_name}'
 os.makedirs(ckpt_path, exist_ok=True)
@@ -61,13 +67,16 @@ hidden_dim = 64
 print('hidden_dim = {}'.format(hidden_dim))
 output_dim = test_dataset.num_classes
 
+drn_k = 4
+aggr = 'add'
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.drn = DynamicReductionNetworkJit(
             input_dim=input_dim, hidden_dim=hidden_dim,
             output_dim=output_dim,
-            k=4, aggr='add',
+            k=drn_k, aggr=aggr,
             agg_layers=2, mp_layers=2, in_layers=3, out_layers=3,
             graph_features=3,
         )
@@ -76,6 +85,11 @@ class Net(nn.Module):
         logits = self.drn(data.x, data.batch, None) # TO CHECK
         return F.log_softmax(logits, dim=1)
 
+param.update({
+    'drn_k': drn_k,
+    'hidden_dim': hidden_dim,
+    'aggr': aggr,
+})
 
 def print_model_summary(model):
     """Override as needed"""
@@ -97,7 +111,7 @@ scheduler = CyclicLRWithRestarts(optimizer, batch_size, epoch_size, restart_peri
 
 print_model_summary(model)
 
-max_epoch = 10
+max_epoch = 50
 resume_training = False
 # resume_file = 'e50.pt'
 # if resume_training:
@@ -107,6 +121,12 @@ resume_training = False
 # else:
 #     start_epoch = 1
 start_epoch = 1
+
+param.update({
+    'max_epoch': max_epoch,
+})
+
+mlflow.log_params(param)
 
 import time
 import matplotlib.pyplot as plt
@@ -122,6 +142,13 @@ for epoch in range(start_epoch, max_epoch + 1):
     m.update(train_loss, train_acc, test_loss, test_acc)
     print('Epoch: {:02d}, Train: {:.4f} Test: {:.4f}'.format(epoch, train_acc, test_acc))
 
+    mlflow.log_metrics({
+        'train_acc': train_acc,
+        'train_loss': train_loss,
+        'test_acc': test_acc,
+        'test_loss': test_loss,
+    }, step=epoch - 1)
+
     if epoch % 5 == 0:
         save_model(model, f'e{epoch:02}.pt')
     if test_acc > best_acc:
@@ -130,6 +157,8 @@ for epoch in range(start_epoch, max_epoch + 1):
         save_model(model, f'best.pt')
 
     m.plot()
+
+mlflow.log_artifact(f'{ckpt_path}/best.pt')
 
 t = time.time() - t
 print('Total', t, 'Avg', t / max_epoch)
