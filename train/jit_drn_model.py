@@ -251,3 +251,37 @@ class DynamicReductionNetworkJit(nn.Module):
         x = self.output(x).squeeze(-1)
 
         return x
+
+if __name__ == '__main__':
+    import torch.nn as nn
+    import torch.nn.functional as F
+    input_dim = 5
+    hidden_dim = 64
+    output_dim = 10
+    drn_k = 4
+    aggr = 'add'
+    pool = 'max'
+    class Net(nn.Module):
+        def __init__(self):
+            super(Net, self).__init__()
+            self.drn = DynamicReductionNetworkJit(
+                input_dim=input_dim, hidden_dim=hidden_dim,
+                output_dim=output_dim,
+                k=drn_k, aggr=aggr,
+                pool=pool,
+                agg_layers=2, mp_layers=2, in_layers=3, out_layers=3,
+                graph_features=3,
+            )
+
+        def forward(self, data):
+            logits = self.drn(data.x, data.batch, None) # TO CHECK
+            return F.log_softmax(logits, dim=1)
+    
+    model = Net()
+    def print_model_summary(model):
+        """Override as needed"""
+        print(
+            'Model: \n%s\nParameters: %i' %
+            (model, sum(p.numel() for p in model.parameters()))
+        )
+    print_model_summary(model)

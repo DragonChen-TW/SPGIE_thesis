@@ -40,7 +40,6 @@ def train(
 
         optimizer.step()
         scheduler.batch_step()
-        break
     return correct / total, total_loss / len(train_loader)
 
 @torch.no_grad()
