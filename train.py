@@ -8,7 +8,12 @@ import os
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1,2,3'
 import mlflow
 # 
-from spdataset import MNISTSuperPixelDataset, MNISTMSuperPixelDataset
+from spdataset import (
+    MNISTSuperPixelDataset, MNISTMSuperPixelDataset,
+    FASHIONMNISTSuperPixelDataset,
+    CIFAR10SuperPixelDataset,
+    SVHNSuperPixelDataset,
+)
 from train.jit_drn_model import DynamicReductionNetworkJit
 from train.drn_train import train, test
 from utils.meter import Meter
@@ -32,7 +37,7 @@ param.update({
     'num_superpixel': int(num_superpixel),
 })
 
-ckpt_path = f'ckpt_{dataset_name}'
+ckpt_path = f'ckpts/ckpt_{dataset_name}'
 os.makedirs(ckpt_path, exist_ok=True)
 
 print('dataset', dataset_name, num_superpixel)
@@ -41,12 +46,12 @@ if dataset_name == 'mnist':
     dataset_cls = MNISTSuperPixelDataset
 elif dataset_name == 'mnist_m':
     dataset_cls = MNISTMSuperPixelDataset
-# elif dataset_name == 'fashion_mnist':
-#     dataset_cls = FASHIONMNISTSuperPixelDataset
-# elif dataset_name == 'svhn':
-#     dataset_cls = SVHNSuperPixelDataset
-# elif dataset_name == 'cifar10':
-#     dataset_cls = CIFAR10SuperPixelDataset
+elif dataset_name == 'fashion_mnist':
+    dataset_cls = FASHIONMNISTSuperPixelDataset
+elif dataset_name == 'cifar10':
+    dataset_cls = CIFAR10SuperPixelDataset
+elif dataset_name == 'svhn':
+    dataset_cls = SVHNSuperPixelDataset
 
 path = f'~/data/{dataset_name.upper()}_SUPERPIXEL'
 if num_superpixel != '75':
@@ -87,7 +92,7 @@ class Net(nn.Module):
         )
 
     def forward(self, data):
-        logits = self.drn(data.x, data.batch, data.x) # TO CHECK
+        logits = self.drn(data.x, data.batch, None) # TO CHECK
         return F.log_softmax(logits, dim=1)
 
 param.update({
