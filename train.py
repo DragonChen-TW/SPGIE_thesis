@@ -26,6 +26,7 @@ parser.add_argument('--dataset_name', type=str, default='mnist')
 parser.add_argument('--hidden_dim', type=int, default=20)
 parser.add_argument('--max_epoch', type=int, default=20)
 parser.add_argument('--device', type=str, default='cuda:0')
+parser.add_argument('--num_sp', type=str, default='754')
 args = parser.parse_args()
 param = vars(args)
 
@@ -57,6 +58,7 @@ path = f'~/data/{dataset_name.upper()}_SUPERPIXEL'
 if num_superpixel != '75':
     path += f'_{num_superpixel}'
 
+# transform = T.Cartesian(cat=False)
 transform = None
 train_dataset = dataset_cls(path, train=True, transform=transform)
 test_dataset = dataset_cls(path, train=False, transform=transform)

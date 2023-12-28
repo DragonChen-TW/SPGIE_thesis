@@ -28,5 +28,3 @@ class Meter:
         ax2.plot(x, self.val_acc_list, color='r')
         ax2.legend(['train_acc', 'val_acc'])
         ax2.set_title('acc')
-        
-        plt.savefig('result2.svg')

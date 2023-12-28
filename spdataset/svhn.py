@@ -10,7 +10,7 @@ class SVHNSuperPixelDataset(Dataset):
     num_features = 5
     num_classes = 10
 
-    def __init__(self, data_dir=DATA_DIR, transform=None, train=True, num_superpixel=50):
+    def __init__(self, data_dir=DATA_DIR, transform=None, train=True, num_superpixel=75):
         phase = 'train' if train else 'test'
 
         print(f'----- Loading {phase} dataset -----')
