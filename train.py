@@ -14,8 +14,8 @@ from spdataset import (
     CIFAR10SuperPixelDataset,
     SVHNSuperPixelDataset,
 )
-from train.jit_drn_model import DynamicReductionNetworkJit
-from train.drn_train import train, test
+from models.jit_drn_model import DynamicReductionNetworkJit
+from models.drn_train import train, test
 from utils.meter import Meter
 from utils.scheduler import CyclicLRWithRestarts
 
@@ -32,7 +32,7 @@ param = vars(args)
 
 dataset_name = args.dataset_name
 batch_size = args.batch_size
-num_superpixel = '75'
+num_superpixel = args.num_sp
 
 param.update({
     'num_superpixel': int(num_superpixel),
