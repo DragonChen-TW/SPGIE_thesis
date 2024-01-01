@@ -15,8 +15,8 @@ class SVHNSuperPixelDataset(Dataset):
 
         print(f'----- Loading {phase} dataset -----')
         data_dir = os.path.expanduser(data_dir)
-        if num_superpixel != 75:
-            data_dir += f'_{num_superpixel}'
+#         if num_superpixel != 75:
+#             data_dir += f'_{num_superpixel}'
         print(f'---------- dataset path: {data_dir} ----------')
         def get_path(f):
             return os.path.abspath(os.path.join(data_dir, f))
