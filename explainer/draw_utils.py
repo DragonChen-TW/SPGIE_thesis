@@ -284,13 +284,14 @@ def draw_superpixel_from_graph(pos, rgb, edges, multi_graph=False, legend=None):
     if isinstance(rgb, torch.Tensor):
         if rgb.max() <= 1.0:
             rgb = (rgb * 255).numpy().astype(int).tolist()
-    if isinstance(rgb, np.ndarray):
+    elif isinstance(rgb, np.ndarray):
         if rgb.max() <= 1.0:
             rgb = (rgb * 255).astype(int).tolist()
     elif isinstance(rgb, list):
         for i, r in enumerate(rgb):
             if np.array(r).max() <= 1.0:
                 rgb[i] = (np.array(r) * 255).astype(int).tolist()
+
     if multi_graph:
         fig, axes = plt.subplots(1, len(rgb), figsize=(len(rgb) * 5, 5))
         
@@ -303,7 +304,7 @@ def draw_superpixel_from_graph(pos, rgb, edges, multi_graph=False, legend=None):
                 dd2 = d1[1], d2[1]
                 axes[idx].plot(dd1, dd2, color='#44AA44', linestyle='solid')
 
-            for (x, y), feature in zip(pos, rgb[idx]):
+            for (y, x), feature in zip(pos, rgb[idx]):
 #                 if not isinstance(feature, list):
 #                     c = '#{0:02x}{0:02x}{0:02x}'.format(int(feature))
                 if len(feature) == 1:
@@ -319,7 +320,7 @@ def draw_superpixel_from_graph(pos, rgb, edges, multi_graph=False, legend=None):
 #             if idx != 0:
 #                 plt.legend(legend, loc=4,
 #                           )
-        plt.savefig('out.svg')
+#         plt.savefig('out.svg')
         plt.show()
     else:
         fig = plt.figure(figsize=(5, 5))
@@ -330,14 +331,15 @@ def draw_superpixel_from_graph(pos, rgb, edges, multi_graph=False, legend=None):
             d2 = pos[e[1]].tolist()
             dd1 = d1[0], d2[0]
             dd2 = d1[1], d2[1]
-            plt.plot(dd1, dd2, color='#44AA44', linestyle='solid')
+            plt.plot(dd2, dd1, color='#44AA44', linestyle='solid')
 
-        for (x, y), feature in zip(pos, rgb):
+        for (y, x), feature in zip(pos, rgb):
             if len(feature) == 1:
                 f = feature[0]
                 c = '#{0:02x}{0:02x}{0:02x}'.format(int(f))
             elif len(feature) == 3:
-                c = '#{:02x}{:02x}{:02x}'.format(*feature)
+                fs = [int(f) for f in feature]
+                c = '#{:02x}{:02x}{:02x}'.format(*fs)
             plt.plot(x, y, marker='o', ms=20, color=c)
         plt.axis('off')
         ax = plt.gca()

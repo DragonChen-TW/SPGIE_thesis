@@ -23,7 +23,7 @@ def load_dataset(
 ) -> torch.utils.data.Dataset:
     path = f'~/data/{dataset_name.upper()}_SUPERPIXEL'
     if num_superpixel != 75:
-        path += f'_{num_superpixel}'
+        path = path.replace('_SUPERPIXEL', f'_{num_superpixel}_SUPERPIXEL')
     
     transform = None
     if dataset_name == 'mnist':
@@ -63,6 +63,20 @@ class Net(torch.nn.Module):
         logits = self.drn(data.x, data.batch, None) # TO CHECK
         return F.log_softmax(logits, dim=1)
 
+def load_model(
+    input_dim: int = 5, hidden_dim: int = 20, output_dim: int = 10,
+    drn_k: int= 4, aggr: str = 'add', pool: str = 'max',
+    graph_features: int = 3,
+    device: torch.device = torch.device('cpu'),
+) -> torch.nn.Module:
+    model = Net(
+        input_dim=input_dim, hidden_dim=hidden_dim,
+        output_dim=output_dim,
+        drn_k=drn_k, aggr=aggr, pool=pool,
+        graph_features=graph_features,
+    ).to(device)
+    return model
+
 def load_model_with_ckpt(
     input_dim: int = 5, hidden_dim: int = 20, output_dim: int = 10,
     drn_k: int= 4, aggr: str = 'add', pool: str = 'max',
@@ -70,38 +84,32 @@ def load_model_with_ckpt(
     device: torch.device = torch.device('cpu'),
     ckpt_name: str = '',
 ) -> torch.nn.Module:
-    model = Net(
+    model = load_model(
         input_dim=input_dim, hidden_dim=hidden_dim,
         output_dim=output_dim,
         drn_k=drn_k, aggr=aggr, pool=pool,
+        graph_features=graph_features,
+        device=device,
     )
-    model.to(device)
+    
     if ckpt_name != '':
         ckpt = torch.load(ckpt_name, map_location=device)
         model.load_state_dict(ckpt)
+    else:
+        print('Please provide the name of checkpoint file.')
     return model
 
-if __name__ == '__main__':
-    dataset = load_dataset('mnist', train=True)
-
-    hidden_dim = 20
-    ckpt_name = '~/SPGIE_thesis/mlruns/0/1c9779a75ea94423be73437ac34200df/artifacts/best.pt'
-
-    aggr = 'add'
-    pool = 'max'
-    model = load_model_with_ckpt(
-        input_dim=dataset.num_features,
-        hidden_dim=hidden_dim,
-        output_dim=dataset.num_classes,
-        drn_k=4, aggr=aggr, pool=pool,
-    )
-def make_one_graph(img, channel_axis=None, num_superpixel=75):
+def make_one_graph(img, channel_axis=None, num_superpixel=75, compactness=None):
     """Inputed images should be reshaped to (height, width, channel) first."""
     img = img.numpy()
+    if img.max() <= 1.0:
+        img = img * 255
+    
     segments = slic(
         img, n_segments=num_superpixel,
-        compactness=0.1,
-        slic_zero=True, start_label=0, channel_axis=channel_axis,
+        compactness=compactness or 1,
+        slic_zero=True, start_label=0,
+        channel_axis=channel_axis,
     ).squeeze()
     num_nodes = np.max(segments) + 1
     node2map = {n: (segments == n) for n in range(num_nodes)}
@@ -150,9 +158,25 @@ def make_one_graph(img, channel_axis=None, num_superpixel=75):
 
     return graph, node2map
 
+# if __name__ == '__main__':
+#     dataset = load_dataset('mnist', train=True)
+
+#     hidden_dim = 20
+#     ckpt_name = '~/SPGIE_thesis/mlruns/0/1c9779a75ea94423be73437ac34200df/artifacts/best.pt'
+
+#     aggr = 'add'
+#     pool = 'max'
+#     model = load_model_with_ckpt(
+#         input_dim=dataset.num_features,
+#         hidden_dim=hidden_dim,
+#         output_dim=dataset.num_classes,
+#         drn_k=4, aggr=aggr, pool=pool,
+#     )
+
 if __name__ == '__main__':
     gray_img = torch.rand((1, 28, 28))
     color_img = torch.rand((3, 28, 28))
     
     _ = make_one_graph(torch.permute(gray_img, (1, 2, 0)), channel_axis=None)
     _ = make_one_graph(torch.permute(color_img, (1, 2, 0)), channel_axis=2)
+    

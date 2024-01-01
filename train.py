@@ -26,16 +26,18 @@ parser.add_argument('--dataset_name', type=str, default='mnist')
 parser.add_argument('--hidden_dim', type=int, default=20)
 parser.add_argument('--max_epoch', type=int, default=20)
 parser.add_argument('--device', type=str, default='cuda:0')
-parser.add_argument('--num_sp', type=str, default='754')
+parser.add_argument('--num_sp', type=int, default=75)
+parser.add_argument('--drn_k', type=int, default=4)
+parser.add_argument('--lr', type=float, default=1e-3)
 args = parser.parse_args()
 param = vars(args)
 
 dataset_name = args.dataset_name
 batch_size = args.batch_size
-num_superpixel = args.num_sp
+num_superpixel = int(args.num_sp)
 
 param.update({
-    'num_superpixel': int(num_superpixel),
+    'num_superpixel': num_superpixel,
 })
 
 ckpt_path = f'ckpts/ckpt_{dataset_name}'
@@ -55,8 +57,8 @@ elif dataset_name == 'svhn':
     dataset_cls = SVHNSuperPixelDataset
 
 path = f'~/data/{dataset_name.upper()}_SUPERPIXEL'
-if num_superpixel != '75':
-    path += f'_{num_superpixel}'
+if num_superpixel != 75:
+    path = path.replace('_SUPERPIXEL', f'_{num_superpixel}_SUPERPIXEL')
 
 # transform = T.Cartesian(cat=False)
 transform = None
@@ -77,7 +79,7 @@ hidden_dim = args.hidden_dim
 output_dim = test_dataset.num_classes
 print('hidden_dim = {}'.format(hidden_dim))
 
-drn_k = 4
+drn_k = int(args.drn_k)
 aggr = 'add'
 pool = 'max'
 
@@ -117,9 +119,10 @@ def save_model(model, ckpt):
 def load_model(model, ckpt):
     model.load_state_dict(torch.load(f'{ckpt_path}/{ckpt}', map_location=device))
 
+lr = float(args.lr)
 device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 model = Net().to(device)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-3)
+optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
 scheduler = CyclicLRWithRestarts(optimizer, batch_size, epoch_size, restart_period=400, t_mult=1.2, policy="cosine")
 
 print_model_summary(model)
