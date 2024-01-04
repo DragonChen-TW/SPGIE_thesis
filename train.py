@@ -15,7 +15,7 @@ from spdataset import (
     SVHNSuperPixelDataset,
 )
 from models.jit_drn_model import DynamicReductionNetworkJit
-from models.drn_train import train, test
+from models.graph_phase import train, test
 from utils.meter import Meter
 from utils.scheduler import CyclicLRWithRestarts
 
@@ -122,7 +122,7 @@ def load_model(model, ckpt):
 lr = float(args.lr)
 device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 model = Net().to(device)
-optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
 scheduler = CyclicLRWithRestarts(optimizer, batch_size, epoch_size, restart_period=400, t_mult=1.2, policy="cosine")
 
 print_model_summary(model)
@@ -168,12 +168,14 @@ for epoch in range(start_epoch, max_epoch + 1):
     if epoch % 5 == 0:
         save_model(model, f'e{epoch:02}.pt')
     if test_acc > best_acc:
+        best_acc = test_acc
         print('best in epoch', epoch)
         print('test acc', test_acc)
         save_model(model, f'best.pt')
 
     m.plot()
 
+mlflow.log_metric('best_acc', best_acc)
 mlflow.log_artifact(f'{ckpt_path}/best.pt')
 
 t = time.time() - t

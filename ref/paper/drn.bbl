@@ -1,0 +1,71 @@
+\begin{thebibliography}{10}
+
+\bibitem{Bronstein_2017}
+Michael~M. Bronstein, Joan Bruna, Yann LeCun, Arthur Szlam, and Pierre
+  Vandergheynst.
+\newblock Geometric deep learning: Going beyond euclidean data.
+\newblock {\em IEEE Signal Processing Magazine}, 34(4):18–42, Jul 2017.
+
+\bibitem{gilmer2017neural}
+Justin Gilmer, Samuel~S. Schoenholz, Patrick~F. Riley, Oriol Vinyals, and
+  George~E. Dahl.
+\newblock Neural message passing for quantum chemistry, 2017.
+
+\bibitem{diehl2019edge}
+Frederik Diehl.
+\newblock Edge contraction pooling for graph neural networks, 2019.
+
+\bibitem{wang2018dynamic}
+Yue Wang, Yongbin Sun, Ziwei Liu, Sanjay~E. Sarma, Michael~M. Bronstein, and
+  Justin~M. Solomon.
+\newblock Dynamic graph cnn for learning on point clouds, 2018.
+
+\bibitem{Fey/Lenssen/2019}
+Matthias Fey and Jan~E. Lenssen.
+\newblock Fast graph representation learning with {PyTorch Geometric}.
+\newblock In {\em ICLR Workshop on Representation Learning on Graphs and
+  Manifolds}, 2019.
+
+\bibitem{gravnet}
+Shah~Rukh Qasim, Jan Kieseler, Yutaro Iiyama, and Maurizio Pierini.
+\newblock Learning representations of irregular particle-detector geometry with
+  distance-weighted graph networks.
+\newblock {\em The European Physical Journal C}, 79(7):608, 2019.
+
+\bibitem{NEURIPS2019}
+Xiangyang Ju, Lindsey Gray, et~al.
+\newblock Graph neural networks for particle reconstruction in high energy
+  physics detectors.
+\newblock {\em NeurIPS Proceedings}, 2019.
+
+\bibitem{Tran_2017}
+Huong~Lan Tran, Katja Krüger, Felix Sefkow, Steven Green, John Marshall, Mark
+  Thomson, and Frank Simon.
+\newblock Software compensation in particle flow reconstruction.
+\newblock {\em The European Physical Journal C}, 77(10), Oct 2017.
+
+\bibitem{lee2019selfattention}
+Junhyun Lee, Inyeop Lee, and Jaewoo Kang.
+\newblock Self-attention graph pooling, 2019.
+
+\bibitem{monti2016geometric}
+Federico Monti, Davide Boscaini, Jonathan Masci, Emanuele Rodolà, Jan Svoboda,
+  and Michael~M. Bronstein.
+\newblock Geometric deep learning on graphs and manifolds using mixture model
+  cnns, 2016.
+
+\bibitem{fey2017splinecnn}
+Matthias Fey, Jan~Eric Lenssen, Frank Weichert, and Heinrich Müller.
+\newblock Splinecnn: Fast geometric deep learning with continuous b-spline
+  kernels, 2017.
+
+\bibitem{10.5555/2340646.2340660}
+Bas~O. Fagginger~Auer and Rob~H. Bisseling.
+\newblock {\em A GPU Algorithm for Greedy Graph Matching}, page 108–119.
+\newblock Springer-Verlag, Berlin, Heidelberg, 2012.
+
+\bibitem{loshchilov2017decoupled}
+Ilya Loshchilov and Frank Hutter.
+\newblock Decoupled weight decay regularization, 2017.
+
+\end{thebibliography}
