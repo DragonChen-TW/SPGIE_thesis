@@ -6,7 +6,7 @@ from torchvision import transforms
 from tqdm import tqdm
 
 class MNISTM(Dataset):
-    def __init__(self, root, mode='train', to_gray=False):
+    def __init__(self, root, mode='train'):
         '''
         Get Image Path.
         '''

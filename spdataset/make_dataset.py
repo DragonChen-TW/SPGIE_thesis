@@ -6,7 +6,7 @@ import torch.multiprocessing as mp
 from skimage.segmentation import slic
 
 from torchvision.datasets import SVHN, CIFAR10, FashionMNIST
-from ori_mnistm import MNISTMData
+from ori_mnistm import MNISTM
 # 
 
 import matplotlib as plt
@@ -52,8 +52,8 @@ def make_one_graph(img, channel_axis=None, num_superpixel=75):
         (
             np.mean(pos, axis=0),
             np.mean(rgb, axis=0),
-            # np.std(rgb, axis=0),
-            # np.std(pos, axis=0),
+            np.std(rgb, axis=0),
+            np.std(pos, axis=0),
         )
     ) for pos, rgb in pos_rgbs])
 
@@ -90,18 +90,19 @@ def save_data(graphs, fname):
 def make_mnistm(is_train=True, multi_processing=True, num_superpixel=75):
     global OUTPUT_DIR
     DATASET_DIR = f'{DATA_DIR}/mnist_m/'
-    OUTPUT_DIR = 'MNIST_M_SUPERPIXEL/'
+    OUTPUT_DIR = 'MNIST_M_SUPERPIXEL_WSTD/'
 
     phase = 'train' if is_train else 'test'
-    print(f'Making [{phase}] datatset......')
-    dataset = MNISTMData(DATASET_DIR, mode=phase)
+    dataset = MNISTM(DATASET_DIR, mode=phase)
+    print(f'Making {DATASET_DIR.replace(DATA_DIR, "")} [{phase}] datatset......')
     images = dataset.get_all_imgs()
     # batch, channel, h, w
     images = np.transpose(images, (0, 2, 3, 1))
 
     t = time.time()
     if multi_processing:
-        num_threads = 8
+        print('mp')
+        num_threads = 4
         with mp.Pool(num_threads) as p:
             graph_datas = p.starmap(
                 make_one_graph,
@@ -110,6 +111,7 @@ def make_mnistm(is_train=True, multi_processing=True, num_superpixel=75):
         # check is ordered
         # assert [q[0] for q in graph_datas] == list(range(len(graph_datas)))
     else:
+        print('no mp')
         loader = tqdm(images, total=len(dataset))
         graph_datas = [
             make_one_graph(img, channel_axis=2, num_superpixel=num_superpixel)
@@ -253,8 +255,8 @@ def main():
 #     make_SVHN(is_train=True)
 #     make_SVHN(is_train=False)
 
-    make_SVHN(is_train=True, num_superpixel=200)
-    make_SVHN(is_train=False, num_superpixel=200)
+#     make_SVHN(is_train=True, num_superpixel=200)
+#     make_SVHN(is_train=False, num_superpixel=200)
 
     make_mnistm(is_train=True)
     make_mnistm(is_train=False)

@@ -1,16 +1,16 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch_geometric.transforms as T
-from torch_geometric.data import DataLoader
+import torchvision.transforms as T
+from torch.utils.data import DataLoader
 
 import os
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1,2,3'
 import mlflow
 # 
-from spdataset import spdataset_mapping
-from models.jit_drn_model import DynamicReductionNetworkJit
-from models.graph_phase import train, test
+from cnn_dataset import cnndataset_mapping
+from models.lenet import LeNet
+from models.cnn_phase import train, test
 from utils.meter import Meter
 from utils.training import print_model_summary
 from utils.scheduler import CyclicLRWithRestarts
@@ -18,11 +18,9 @@ from utils.scheduler import CyclicLRWithRestarts
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_name', type=str, default='mnist')
-parser.add_argument('--num_sp', type=int, default=75)
 parser.add_argument('--batch_size', type=int, default=128)
 
 parser.add_argument('--hidden_dim', type=int, default=20)
-parser.add_argument('--drn_k', type=int, default=4)
 
 parser.add_argument('--mlflow_log', type=bool, default=True)
 parser.add_argument('--device', type=str, default='cuda:0')
@@ -32,23 +30,18 @@ args = parser.parse_args()
 param = vars(args)
 
 dataset_name = args.dataset_name
-num_superpixel = int(args.num_sp)
 batch_size = args.batch_size
 
-param.update({
-    'num_superpixel': num_superpixel,
-})
-
-ckpt_path = f'ckpts/ckpt_{dataset_name}'
+ckpt_path = f'ckpts/cnnckpt_{dataset_name}'
 os.makedirs(ckpt_path, exist_ok=True)
 
-print('dataset', dataset_name, num_superpixel)
+print('dataset', dataset_name)
 
-dataset_cls = spdataset_mapping(dataset_name)
+dataset_cls = cnndataset_mapping(dataset_name)
 
-path = f'~/data/{dataset_name.upper()}_SUPERPIXEL_WSTD'
-if num_superpixel != 75:
-    path = path.replace('_SUPERPIXEL', f'_{num_superpixel}_SUPERPIXEL')
+path = f'~/data/'
+
+# TODO: fix following code
 
 # transform = T.Cartesian(cat=False)
 transform = None
@@ -112,7 +105,7 @@ print_model_summary(model)
 
 max_epoch = args.max_epoch
 mlflow_log = args.mlflow_log
-# resume_training = False
+resume_training = False
 start_epoch = 1
 
 param.update({
