@@ -12,7 +12,7 @@ DATASET_MAPPING = {
     'cifar10': CIFAR10,
     'svhn': SVHN,
 }
-def cnndataset_mapping(dataset_name: str) -> torch.data.Dataset:
+def cnndataset_mapping(dataset_name: str) -> torch.utils.data.Dataset:
     return DATASET_MAPPING[dataset_name]
 
 # # MNIST

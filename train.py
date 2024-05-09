@@ -18,6 +18,7 @@ from utils.scheduler import CyclicLRWithRestarts
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_name', type=str, default='mnist')
+parser.add_argument('--with_std', type=bool, default=False)
 parser.add_argument('--num_sp', type=int, default=75)
 parser.add_argument('--batch_size', type=int, default=128)
 
@@ -35,18 +36,25 @@ dataset_name = args.dataset_name
 num_superpixel = int(args.num_sp)
 batch_size = args.batch_size
 
+with_std = args.with_std
+
 param.update({
     'num_superpixel': num_superpixel,
+    'with_std': with_std,
 })
 
 ckpt_path = f'ckpts/ckpt_{dataset_name}'
 os.makedirs(ckpt_path, exist_ok=True)
 
 print('dataset', dataset_name, num_superpixel)
+if with_std:
+    print('w/ std')
 
 dataset_cls = spdataset_mapping(dataset_name)
 
-path = f'~/data/{dataset_name.upper()}_SUPERPIXEL_WSTD'
+path = f'~/data/{dataset_name.upper()}_SUPERPIXEL'
+if with_std:
+    path = f'~/data/{dataset_name.upper()}_SUPERPIXEL_WSTD'
 if num_superpixel != 75:
     path = path.replace('_SUPERPIXEL', f'_{num_superpixel}_SUPERPIXEL')
 
@@ -58,16 +66,16 @@ train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 epoch_size = len(train_dataset)
-print('Epoch', epoch_size, 'Batch size', batch_size)
-print('features ->', train_dataset.num_features)
-print('classes ->',train_dataset.num_classes)
-
-input_dim = train_dataset.num_features
-
-input_dim = test_dataset.num_features
+num_features = train_dataset.num_features
+if with_std:
+    num_features = train_dataset.num_features * 2
 hidden_dim = args.hidden_dim
 output_dim = test_dataset.num_classes
-print('hidden_dim = {}'.format(hidden_dim))
+
+print('Epoch', epoch_size, 'Batch size', batch_size)
+print('features ->', num_features)
+print('hidden_dim ->', hidden_dim)
+print('classes ->', output_dim)
 
 drn_k = int(args.drn_k)
 aggr = 'add'
@@ -77,12 +85,12 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.drn = DynamicReductionNetworkJit(
-            input_dim=input_dim, hidden_dim=hidden_dim,
+            input_dim=num_features, hidden_dim=hidden_dim,
             output_dim=output_dim,
             k=drn_k, aggr=aggr,
             pool=pool,
             agg_layers=2, mp_layers=2, in_layers=3, out_layers=3,
-            graph_features=train_dataset.num_features,
+            graph_features=num_features,
         )
 
     def forward(self, data):

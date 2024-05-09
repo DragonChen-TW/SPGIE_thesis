@@ -20,10 +20,16 @@ args_list = [
 #     '--dataset_name cifar10 --hidden_dim 256 --max_epoch 100 --device cuda:0',
     
 #     ==================== mnist_m ====================
-#     '--dataset_name mnist_m --hidden_dim 20 --max_epoch 100 --num_sp 75 --device cuda:0',
-#     '--dataset_name mnist_m --hidden_dim 64 --max_epoch 100 --num_sp 75 --device cuda:0',
-    '--dataset_name mnist_m --hidden_dim 128 --max_epoch 100 --num_sp 75 --device cuda:1',
-    '--dataset_name mnist_m --hidden_dim 256 --max_epoch 100 --num_sp 75 --device cuda:1',
+    # '--dataset_name mnist_m --hidden_dim 20 --max_epoch 100 --num_sp 75 --device cuda:0',
+    # '--dataset_name mnist_m --hidden_dim 64 --max_epoch 100 --num_sp 75 --device cuda:1',
+    # '--dataset_name mnist_m --hidden_dim 128 --max_epoch 100 --num_sp 75 --device cuda:1',
+    # '--dataset_name mnist_m --hidden_dim 256 --max_epoch 100 --num_sp 75 --device cuda:0',
+
+#     ==================== mnist_m ====================
+    # '--dataset_name mnist_m --hidden_dim 20 --max_epoch 100 --num_sp 75 --device cuda:0 --with_std True',
+    '--dataset_name mnist_m --hidden_dim 64 --max_epoch 100 --num_sp 75 --device cuda:1 --with_std True',
+    '--dataset_name mnist_m --hidden_dim 128 --max_epoch 100 --num_sp 75 --device cuda:1 --with_std True',
+    # '--dataset_name mnist_m --hidden_dim 256 --max_epoch 100 --num_sp 75 --device cuda:0 --with_std True',
     
 #     ==================== svhn ====================
 #     '--dataset_name svhn --hidden_dim 64 --max_epoch 100 --num_sp 75 --lr 0.01 --device cuda:0',

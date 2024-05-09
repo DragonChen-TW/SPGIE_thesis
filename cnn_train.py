@@ -51,16 +51,14 @@ train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 epoch_size = len(train_dataset)
-print('Epoch', epoch_size, 'Batch size', batch_size)
-print('features ->', train_dataset.num_features)
-print('classes ->',train_dataset.num_classes)
-
-input_dim = train_dataset.num_features
-
-input_dim = test_dataset.num_features
+num_features = train_dataset.num_features
 hidden_dim = args.hidden_dim
 output_dim = test_dataset.num_classes
-print('hidden_dim = {}'.format(hidden_dim))
+
+print('Epoch', epoch_size, 'Batch size', batch_size)
+print('features ->', num_features)
+print('hidden_dim ->', hidden_dim)
+print('classes ->', output_dim)
 
 drn_k = int(args.drn_k)
 aggr = 'add'
@@ -70,12 +68,12 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.drn = DynamicReductionNetworkJit(
-            input_dim=input_dim, hidden_dim=hidden_dim,
+            input_dim=num_features, hidden_dim=hidden_dim,
             output_dim=output_dim,
             k=drn_k, aggr=aggr,
             pool=pool,
             agg_layers=2, mp_layers=2, in_layers=3, out_layers=3,
-            graph_features=train_dataset.num_features,
+            graph_features=num_features,
         )
 
     def forward(self, data):

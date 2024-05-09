@@ -12,5 +12,5 @@ DATASET_MAPPING = {
     'cifar10': CIFAR10SuperPixelDataset,
     'svhn': SVHNSuperPixelDataset,
 }
-def spdataset_mapping(dataset_name: str) -> torch.data.Dataset:
+def spdataset_mapping(dataset_name: str) -> torch.utils.data.Dataset:
     return DATASET_MAPPING[dataset_name]

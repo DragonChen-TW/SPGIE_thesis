@@ -21,7 +21,7 @@ import argparse
 
 DATA_DIR = '~/data'
 
-def make_one_graph(img, channel_axis=None, num_superpixel=75):
+def make_one_graph(img, channel_axis=None, num_superpixel=75, with_std=False):
     """Inputed images should be reshaped to (height, width, channel) first."""
     if not isinstance(img, np.ndarray):
         img = np.array(img)
@@ -52,10 +52,17 @@ def make_one_graph(img, channel_axis=None, num_superpixel=75):
         (
             np.mean(pos, axis=0),
             np.mean(rgb, axis=0),
-            np.std(rgb, axis=0),
-            np.std(pos, axis=0),
         )
     ) for pos, rgb in pos_rgbs])
+    if with_std:
+        node_features = np.array([np.concatenate(
+            (
+                np.mean(pos, axis=0),
+                np.mean(rgb, axis=0),
+                np.std(pos, axis=0),
+                np.std(rgb, axis=0),
+            )
+        ) for pos, rgb in pos_rgbs])
 
     # ===== make edge =====
     bneighbors = np.unique(np.block([
@@ -87,10 +94,12 @@ def save_data(graphs, fname):
     print(f'Save to {path}{fname}.pt')
     torch.save(graphs, f'{path}{fname}.pt')
 
-def make_mnistm(is_train=True, multi_processing=True, num_superpixel=75):
+def make_mnistm(is_train=True, multi_processing=True, num_superpixel=75, with_std=False):
     global OUTPUT_DIR
     DATASET_DIR = f'{DATA_DIR}/mnist_m/'
-    OUTPUT_DIR = 'MNIST_M_SUPERPIXEL_WSTD/'
+    OUTPUT_DIR = 'MNIST_M_SUPERPIXEL/'
+    if with_std:
+        OUTPUT_DIR = 'MNIST_M_SUPERPIXEL_WSTD/'
 
     phase = 'train' if is_train else 'test'
     dataset = MNISTM(DATASET_DIR, mode=phase)
@@ -106,7 +115,7 @@ def make_mnistm(is_train=True, multi_processing=True, num_superpixel=75):
         with mp.Pool(num_threads) as p:
             graph_datas = p.starmap(
                 make_one_graph,
-                [(img, 2, num_superpixel) for img in images],
+                [(img, 2, num_superpixel, with_std) for img in images],
             )
         # check is ordered
         # assert [q[0] for q in graph_datas] == list(range(len(graph_datas)))
@@ -114,7 +123,7 @@ def make_mnistm(is_train=True, multi_processing=True, num_superpixel=75):
         print('no mp')
         loader = tqdm(images, total=len(dataset))
         graph_datas = [
-            make_one_graph(img, channel_axis=2, num_superpixel=num_superpixel)
+            make_one_graph(img, channel_axis=2, num_superpixel=num_superpixel, with_std=with_std)
             for img in loader
         ]
     
@@ -260,6 +269,10 @@ def main():
 
     make_mnistm(is_train=True)
     make_mnistm(is_train=False)
+    
+    # make_mnistm(is_train=True, with_std=True)
+    # make_mnistm(is_train=False, with_std=True)
+    # Cost: 655.4s 96.6s
 
     # make_cifar10(is_train=True)
     # make_cifar10(is_train=False)
