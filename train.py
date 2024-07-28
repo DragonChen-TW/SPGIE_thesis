@@ -58,8 +58,8 @@ if with_std:
 if num_superpixel != 75:
     path = path.replace('_SUPERPIXEL', f'_{num_superpixel}_SUPERPIXEL')
 
-# transform = T.Cartesian(cat=False)
-transform = None
+transform = T.Cartesian(cat=False)
+# transform = None
 train_dataset = dataset_cls(path, train=True, transform=transform)
 test_dataset = dataset_cls(path, train=False, transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)

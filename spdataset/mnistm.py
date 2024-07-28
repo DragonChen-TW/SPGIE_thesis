@@ -6,6 +6,12 @@ import torch_geometric.transforms as T
 
 DATA_DIR = '~/data/MNIST_M_SUPERPIXEL'
 
+def transform_with_std(n):
+    if n.shape[1] > 5:
+        n[:, 5:7] = n[:, 5:7] * 10    # position
+        n[:, 7:10] = n[:, 7:10] * 2   # color
+    return torch.from_numpy(n).float()
+
 class MNISTMSuperPixelDataset(Dataset):
     num_features = 5
     num_classes = 10
@@ -22,7 +28,7 @@ class MNISTMSuperPixelDataset(Dataset):
         edges = torch.load(get_path(f'{phase}_edge.pt'))
         labels = torch.load(get_path(f'{phase}_label.pt'))
 
-        self.nodes = [torch.from_numpy(n).float() for n in nodes]
+        self.nodes = [transform_with_std(n) for n in nodes]
         self.pos = [n[:, :2] for n in self.nodes]
         self.edges = [torch.from_numpy(e) for e in edges]
         self.labels = torch.LongTensor(labels)

@@ -48,12 +48,6 @@ def make_one_graph(img, channel_axis=None, num_superpixel=75, with_std=False):
         xy_pos[segments == node, :],
         img[segments == node, :],
     ) for node in range(num_nodes)]
-    node_features = np.array([np.concatenate(
-        (
-            np.mean(pos, axis=0),
-            np.mean(rgb, axis=0),
-        )
-    ) for pos, rgb in pos_rgbs])
     if with_std:
         node_features = np.array([np.concatenate(
             (
@@ -61,6 +55,13 @@ def make_one_graph(img, channel_axis=None, num_superpixel=75, with_std=False):
                 np.mean(rgb, axis=0),
                 np.std(pos, axis=0),
                 np.std(rgb, axis=0),
+            )
+        ) for pos, rgb in pos_rgbs])
+    else:
+        node_features = np.array([np.concatenate(
+            (
+                np.mean(pos, axis=0),
+                np.mean(rgb, axis=0),
             )
         ) for pos, rgb in pos_rgbs])
 
