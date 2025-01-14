@@ -302,7 +302,7 @@ def draw_superpixel_from_graph(pos, rgb, edges, multi_graph=False, legend=None):
                 d2 = pos[e[1]].tolist()
                 dd1 = d1[0], d2[0]
                 dd2 = d1[1], d2[1]
-                axes[idx].plot(dd1, dd2, color='#44AA44', linestyle='solid')
+                axes[idx].plot(dd2, dd1, color='#44AA44', linestyle='solid')
 
             for (y, x), feature in zip(pos, rgb[idx]):
 #                 if not isinstance(feature, list):

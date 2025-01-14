@@ -9,7 +9,7 @@ import os
 import mlflow
 # 
 from cnn_dataset import cnndataset_mapping
-from models.lenet import LeNet
+from models import lenet, resnet
 from models.cnn_phase import train, test
 from utils.meter import Meter
 from utils.training import print_model_summary
@@ -17,15 +17,16 @@ from utils.scheduler import CyclicLRWithRestarts
 
 import argparse
 parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', type=str, default='lenet')
 parser.add_argument('--dataset_name', type=str, default='mnist')
 parser.add_argument('--batch_size', type=int, default=128)
 
-parser.add_argument('--hidden_dim', type=int, default=20)
+# parser.add_argument('--hidden_dim', type=int, default=20)
 
 parser.add_argument('--mlflow_log', type=bool, default=True)
-parser.add_argument('--device', type=str, default='cuda:0')
+parser.add_argument('--device', type=str, default='cuda:1')
 parser.add_argument('--lr', type=float, default=1e-3)
-parser.add_argument('--max_epoch', type=int, default=20)
+parser.add_argument('--max_epoch', type=int, default=50)
 args = parser.parse_args()
 param = vars(args)
 
@@ -43,49 +44,41 @@ path = f'~/data/'
 
 # TODO: fix following code
 
-# transform = T.Cartesian(cat=False)
-transform = None
-train_dataset = dataset_cls(path, train=True, transform=transform)
-test_dataset = dataset_cls(path, train=False, transform=transform)
+transform_train = T.Compose([
+#     T.RandomAffine(0, translate=(0.1, 0.1)),
+    T.RandomRotation(degrees=(-45, 45)),
+#     T.ColorJitter(brightness=0.1, hue=0.2),
+    T.RandomCrop(32, padding=4),
+    T.ToTensor(),
+])
+transform_test = T.Compose([
+    T.CenterCrop(32, padding=4),
+    T.ToTensor(),
+])
+
+train_dataset = dataset_cls(path, train=True, transform=transform_train)
+test_dataset = dataset_cls(path, train=False, transform=transform_test)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 epoch_size = len(train_dataset)
-num_features = train_dataset.num_features
-hidden_dim = args.hidden_dim
-output_dim = test_dataset.num_classes
+# hidden_dim = args.hidden_dim
 
-print('Epoch', epoch_size, 'Batch size', batch_size)
+if dataset_name in ['mnist_m']:
+    num_features = train_dataset.num_features
+    output_dim = test_dataset.num_classes
+else:
+    if dataset_name in ['mnist', 'fashion_mnist']:
+        num_features = 1
+    else:
+        num_features = 3
+    output_dim = 10
+
+print('Epoch size', epoch_size, 'Batch size', batch_size)
 print('features ->', num_features)
-print('hidden_dim ->', hidden_dim)
+# print('hidden_dim ->', hidden_dim)
 print('classes ->', output_dim)
 
-drn_k = int(args.drn_k)
-aggr = 'add'
-pool = 'max'
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.drn = DynamicReductionNetworkJit(
-            input_dim=num_features, hidden_dim=hidden_dim,
-            output_dim=output_dim,
-            k=drn_k, aggr=aggr,
-            pool=pool,
-            agg_layers=2, mp_layers=2, in_layers=3, out_layers=3,
-            graph_features=num_features,
-        )
-
-    def forward(self, data):
-        logits = self.drn(data.x, data.batch, None) # TO CHECK
-        return F.log_softmax(logits, dim=1)
-
-param.update({
-    'drn_k': drn_k,
-    'hidden_dim': hidden_dim,
-    'aggr': aggr,
-    'pool': pool,
-})
 
 def save_model(model, ckpt):
     torch.save(model.state_dict(), f'{ckpt_path}/{ckpt}')
@@ -93,9 +86,21 @@ def save_model(model, ckpt):
 def load_model(model, ckpt):
     model.load_state_dict(torch.load(f'{ckpt_path}/{ckpt}', map_location=device))
 
+model_name = args.model_name
+if model_name == 'lenet':
+    model = lenet.LeNet(num_features)
+elif model_name == 'resnet18':
+    model = resnet.resnet18(num_features)
+elif model_name == 'resnet':
+    model = resnet.resnet50(num_features)
+elif model_name == 'resnext':
+    model = resnet.resnext50_32x4d(num_features)
+
+
 lr = float(args.lr)
 device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
-model = Net().to(device)
+model = model.to(device)
+criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
 scheduler = CyclicLRWithRestarts(optimizer, batch_size, epoch_size, restart_period=400, t_mult=1.2, policy="cosine")
 
@@ -123,10 +128,17 @@ t = time.time()
 for epoch in range(start_epoch, max_epoch + 1):
     train_acc, train_loss = train(
         model, train_loader,
-        optimizer, scheduler, device,
+        optimizer, criterion,        
+        scheduler,
+        device,
         mlflow_log=mlflow_log,
     )
-    test_acc, test_loss = test(model, test_loader, device, mlflow_log=mlflow_log)
+    test_acc, test_loss = test(
+        model, test_loader,
+        criterion,
+        device,
+        mlflow_log=mlflow_log,
+    )
     m.update(train_loss, train_acc, test_loss, test_acc)
     print('Epoch: {:02d}, Train: {:.4f} Test: {:.4f}'.format(epoch, train_acc, test_acc))
 
@@ -139,7 +151,7 @@ for epoch in range(start_epoch, max_epoch + 1):
         }, step=epoch - 1)
 
     if epoch % 5 == 0:
-        save_model(model, f'e{epoch:02}.pt')
+        save_model(model, f'{model_name}_e{epoch:02}.pt')
     if test_acc > best_acc:
         best_acc = test_acc
         print('best in epoch', epoch)

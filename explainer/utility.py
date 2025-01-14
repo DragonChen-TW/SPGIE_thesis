@@ -20,8 +20,11 @@ from models.jit_drn_model import DynamicReductionNetworkJit
 def load_dataset(
     dataset_name: str, train: bool = True,
     num_superpixel: int = 75,
+    with_std: bool = False,
 ) -> torch.utils.data.Dataset:
     path = f'~/data/{dataset_name.upper()}_SUPERPIXEL'
+    if with_std:
+        path = f'~/data/{dataset_name.upper()}_SUPERPIXEL_WSTD'
     if num_superpixel != 75:
         path = path.replace('_SUPERPIXEL', f'_{num_superpixel}_SUPERPIXEL')
     
@@ -99,11 +102,11 @@ def load_model_with_ckpt(
         print('Please provide the name of checkpoint file.')
     return model
 
-def make_one_graph(img, channel_axis=None, num_superpixel=75, compactness=None):
+def make_segments_and_graph(img, channel_axis=None, num_superpixel=75, compactness=None):
     """Inputed images should be reshaped to (height, width, channel) first."""
     img = img.numpy()
-    if img.max() <= 1.0:
-        img = img * 255
+#     if img.max() <= 1.0:
+#         img = img * 255
     
     segments = slic(
         img, n_segments=num_superpixel,
@@ -156,7 +159,7 @@ def make_one_graph(img, channel_axis=None, num_superpixel=75, compactness=None):
         edge_index=torch.tensor(edge_index),
     )
 
-    return graph, node2map
+    return graph, segments, node2map
 
 # if __name__ == '__main__':
 #     dataset = load_dataset('mnist', train=True)

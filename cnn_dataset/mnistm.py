@@ -34,14 +34,14 @@ class MNISTM(Dataset):
         # shape is 32x32
         # transforms
         trans = []
-        if mode == 'train':
-            trans += [
-                transforms.RandomCrop(28),
-            ]
-        else:
-            trans += [
-                transforms.CenterCrop(28),
-            ]
+#         if mode == 'train':
+#             trans += [
+#                 transforms.RandomCrop(28),
+#             ]
+#         else:
+#             trans += [
+#                 transforms.CenterCrop(28),
+#             ]
         trans += [transforms.ToTensor()]
         
         self.transforms = transforms.Compose(trans)
