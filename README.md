@@ -25,4 +25,4 @@ pass
 You can directly checkout the .ipynb files under `explainer` folder.
 
 - [SPGIE explainer on MNIST](explainer/explain_mnist.ipynb)
-- [SPGIE explainer on MNIST-M](explainer/explain_mnist.ipynb)
+- [SPGIE explainer on MNIST-M](explainer/explain_mnistm.ipynb)
